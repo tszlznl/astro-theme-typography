@@ -5,16 +5,16 @@ import type { ThemeConfig } from '~/types'
 
 export const defaultConfig: ThemeConfig = {
   site: {
-    title: '活版印字',
-    subtitle: 'Typography',
-    author: 'Moeyua',
-    description: 'Rediscory the beauty of typography',
-    website: 'https://astro-theme-typography.vercel.app/',
+    title: '临时工人',
+    subtitle: 'temporary workers',
+    author: '罗妄',
+    description: 'Temporary workers write temporary writing',
+    website: 'https://astro-theme-typography-ashy.vercel.app/',
     pageSize: 5,
     socialLinks: [
       {
         name: 'github',
-        href: 'https://github.com/moeyua/astro-theme-typography',
+        href: 'https://github.com/tszlznl/astro-theme-typography',
       },
       {
         name: 'rss',
@@ -22,11 +22,11 @@ export const defaultConfig: ThemeConfig = {
       },
       {
         name: 'twitter',
-        href: 'https://github.com/moeyua/astro-theme-typography',
+        href: 'https://github.com/tszlznl/astro-theme-typography',
       },
       {
         name: 'mastodon',
-        href: 'https://github.com/moeyua/astro-theme-typography',
+        href: 'https://github.com/tszlznl/astro-theme-typography',
       },
     ],
     navLinks: [
