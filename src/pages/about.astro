@@ -1,27 +1,18 @@
 ---
-import { getEntry, render } from 'astro:content'
 import LayoutDefault from '~/layouts/LayoutDefault.astro'
-import { formatDate } from '~/utils'
-
-const { translate: t } = Astro.locals
-const aboutPost = await getEntry('spec', 'about')
-if (!aboutPost) {
-  throw new Error('No about post found')
-}
-const { Content } = await render(aboutPost)
 ---
 
 <LayoutDefault>
-  <header flex="~ col gap-2">
-    <h1 class="post-title">
-      <a class="not-prose">{aboutPost.data.title}</a>
-    </h1>
-    <div class="text-3.5">
-      <span>{t('posted_at')}</span>
-      <time>{formatDate(aboutPost.data.pubDate)}</time>
-    </div>
-  </header>
-  <article class="prose">
-    <Content />
-  </article>
+  <div>
+    <h2>关于</h2>
+      <p>我要成为一个靠文字生存的写作者，你的赞赏是我继续的动力。</p>
+      <p>
+        在不同的季节你会爱上不同的女孩，我对那些永远只爱一种男人的女人表示不屑。这肯定不是口味问题，而是她们的审美出现了偏差。不同的女孩会被我在不同季节爱上，这一定律也适用于你们这些混蛋。
+      </p>
+      <p>
+        你完全不理解，也不可能理解，你仅仅是被她们超乎想象的美丽而震撼。
+      </p>
+      <p>
+  </div>
 </LayoutDefault>
+

@@ -1,3 +1,4 @@
+import type { Theme } from 'unocss/preset-uno'
 import presetAttributify from '@unocss/preset-attributify'
 import transformerDirectives from '@unocss/transformer-directives'
 import {
@@ -58,13 +59,13 @@ export default defineConfig({
     presetTypography({ cssExtend }),
     presetAttributify(),
     presetIcons({ scale: 1.2, warn: true }),
-    presetTheme ({
+    presetTheme<Theme>({
       theme: {
         dark: {
           colors: { ...colorsDark, shadow: '#FFFFFF0A' },
           // TODO 需要配置代码块颜色
         },
-      },
+      }
     }),
   ],
   theme: {

@@ -2,9 +2,18 @@ import { execSync } from 'node:child_process'
 import fs from 'node:fs'
 import path from 'node:path'
 import consola from 'consola'
-import dayjs from 'dayjs'
 
-createPost()
+/**
+ * Get the current date in the format "YYYY-MM-DD".
+ * @returns The current date as a string.
+ */
+function getDate(): string {
+  const today: Date = new Date()
+  const year: number = today.getFullYear()
+  const month: string = String(today.getMonth() + 1).padStart(2, '0')
+  const day: string = String(today.getDate()).padStart(2, '0')
+  return `${year}-${month}-${day}`
+}
 
 /**
  * Create a new post.
@@ -13,31 +22,36 @@ createPost()
  */
 async function createPost(): Promise<void> {
   consola.start('Ready to create a new post!')
-
-  const filename: string = await consola.prompt('Enter file name: ', { type: 'text' })
-  const extension: string = await consola.prompt('Select file extension: ', { type: 'select', options: ['.md', '.mdx'] })
-  const isDraft: boolean = await consola.prompt('Is this a draft?', { type: 'confirm', initial: true })
+  const filename: string = await consola.prompt('Enter file name: ', {
+    type: 'text',
+  })
+  const ext: string = await consola.prompt('Select file extension: ', {
+    type: 'select',
+    options: ['.md', '.mdx'],
+  })
 
   const targetDir = './src/content/posts/'
-  const fullPath: string = path.join(targetDir, `${filename}${extension}`)
+  const fullPath: string = path.join(targetDir, `${filename}${ext}`)
 
-  const frontmatter = getFrontmatter({
-    title: filename,
-    pubDate: dayjs().format('YYYY-MM-DD'),
-    categories: '[]',
-    description: '\'\'',
-    slug: filename.toLowerCase().replace(/\s+/g, '-'),
-    draft: isDraft ? 'true' : 'false',
-  })
+  const frontmatter = `---
+  title: ${filename}
+  pubDate: ${getDate()}
+  categories: []
+  description: ''
+  ---
+  `
 
   try {
     fs.writeFileSync(fullPath, frontmatter)
     consola.success('New post created successfully!')
 
-    const open: boolean = await consola.prompt('Open the new post?', { type: 'confirm', initial: true })
+    const open: boolean = await consola.prompt('Open the new post?', {
+      type: 'confirm',
+      initial: true,
+    })
     if (open) {
       consola.info(`Opening ${fullPath}...`)
-      execSync(`code "${fullPath}"`)
+      execSync(`code ${fullPath}`)
     }
   }
   catch (error) {
@@ -45,15 +59,4 @@ async function createPost(): Promise<void> {
   }
 }
 
-/**
- * Create frontmatter from a data object.
- * @param data The data object to convert to frontmatter.
- * @returns The frontmatter as a string.
- */
-function getFrontmatter(data: { [key: string]: string }): string {
-  const frontmatter = Object.entries(data)
-    .map(([key, value]) => `${key}: ${value}`)
-    .join('\n')
-
-  return `---\n${frontmatter}\n---`
-}
+createPost()
