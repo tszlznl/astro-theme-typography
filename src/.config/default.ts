@@ -5,7 +5,7 @@ import type { ThemeConfig } from '~/types'
 
 export const defaultConfig: ThemeConfig = {
   site: {
-    title: '临时工人',
+    title: '临时工',
     subtitle: 'temporary workers',
     author: '罗妄',
     description: 'Temporary workers write temporary writing',
