@@ -5,13 +5,23 @@ import Pagination from '~/components/Pagination.astro'
 import SiteSeo from '~/components/SiteSeo.astro'
 import LayoutDefault from '~/layouts/LayoutDefault.astro'
 import LayoutPost from '~/layouts/LayoutPost.astro'
-import { getPostsByTimeline } from '~/utils'
+import { getPosts } from '~/utils'
 
 export const getStaticPaths = (async () => {
-  const posts = await getPostsByTimeline()
-  return posts.map((post, idx) => {
-    const prev = posts[idx - 1]
-    const next = posts[idx + 1]
+  // 获取所有带有 timeline: true 标记的文章
+  const posts = await getPosts()
+  const timelinePosts = posts.filter(post => post.data.timeline === true)
+  
+  // 按日期排序
+  timelinePosts.sort((a, b) => {
+    const dateA = new Date(a.data.date)
+    const dateB = new Date(b.data.date)
+    return dateB.getTime() - dateA.getTime()
+  })
+  
+  return timelinePosts.map((post, idx) => {
+    const prev = timelinePosts[idx - 1]
+    const next = timelinePosts[idx + 1]
     return {
       params: { slug: post.slug },
       props: { entry: post, next, prev },
@@ -26,27 +36,50 @@ const { Content } = await entry.render()
 const { translate: t } = Astro.locals
 
 function getUrl(slug: string) {
-  return `/posts/${slug}`
+  return `/timeline/${slug}` // 修改 URL 路径
+}
+
+// 格式化日期
+function formatDate(date: Date) {
+  return date.toLocaleDateString('zh-CN', {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric'
+  })
 }
 ---
 
 <LayoutDefault>
-  <SiteSeo slot="seo" title={entry.data.title} desc={entry.data.description} banner={entry.data.banner} />
-
-  <LayoutPost post={entry}>
-    <h2>{entry.data.timeline}</h2>
-    <Content />
-  </LayoutPost>
-
-  <Pagination
-    showLeft={Boolean(prev)}
-    leftTitle={`${t('prev_post')}: ${prev?.data.title}`}
-    leftUrl={getUrl(prev?.slug)}
-    showRight={Boolean(next)}
-    rightTitle={`${t('next_post')}: ${next?.data.title}`}
-    rightUrl={getUrl(next?.slug)}
-    showPageCount={false}
+  <SiteSeo 
+    slot="seo" 
+    title={`${entry.data.title} | Timeline`} 
+    desc={entry.data.description} 
+    banner={entry.data.banner} 
   />
+
+  <div class="timeline-container">
+    <div class="timeline-header">
+      <h1>{entry.data.title}</h1>
+      <time datetime={entry.data.date}>
+        {formatDate(new Date(entry.data.date))}
+      </time>
+    </div>
+
+    <LayoutPost post={entry}>
+      <Content />
+    </LayoutPost>
+
+    <Pagination
+      showLeft={Boolean(prev)}
+      leftTitle={`${t('prev_post')}: ${prev?.data.title}`}
+      leftUrl={getUrl(prev?.slug)}
+      showRight={Boolean(next)}
+      rightTitle={`${t('next_post')}: ${next?.data.title}`}
+      rightUrl={getUrl(next?.slug)}
+      showPageCount={false}
+    />
+  </div>
+
   <Comments post={entry} />
 </LayoutDefault>
 
@@ -82,9 +115,32 @@ function getUrl(slug: string) {
 </script>
 
 <style is:global>
+  .timeline-container {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 2rem 1rem;
+  }
+
+  .timeline-header {
+    margin-bottom: 2rem;
+    text-align: center;
+  }
+
+  .timeline-header h1 {
+    font-size: 2rem;
+    font-weight: bold;
+    margin-bottom: 0.5rem;
+  }
+
+  .timeline-header time {
+    color: #666;
+    font-size: 0.9rem;
+  }
+
   .code-container {
     position: relative;
   }
+  
   .clipboard-copy {
     position: absolute;
     top: 0.5rem;
