@@ -52,8 +52,3 @@ export function getPathFromCategory(
   return mappingPath ? mappingPath.path : category
 }
 
-// 添加专门的获取时间线文章的方法
-export async function getTimelinePosts() {
-  const posts = await getPosts()
-  return posts.filter(post => post.frontmatter.timeline)
-}
