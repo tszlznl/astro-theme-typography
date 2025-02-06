@@ -10,13 +10,8 @@ const timelinePosts = allPosts.filter(post => post.data.timeline === true);
 import LayoutDefault from '~/layouts/LayoutDefault.astro'
 
 ---
-
-
-
-<html>
-  <head>
-    <title>动态页面</title>
-    <style>
+<LayoutDefault>
+<style>
       .timeline {
         max-width: 800px;
         margin: 0 auto;
@@ -53,8 +48,6 @@ import LayoutDefault from '~/layouts/LayoutDefault.astro'
         color: #666;
       }
     </style>
-  </head>
-  <body>
     <div class="timeline">
       <h1>动态页面</h1>
       <ul style="list-style: none; padding: 0;">
@@ -66,5 +59,4 @@ import LayoutDefault from '~/layouts/LayoutDefault.astro'
         ))}
       </ul>
     </div>
-  </body>
-</html>
+</LayoutDefault>
