@@ -1,199 +1,155 @@
 ---
-import type { GetStaticPaths, InferGetStaticPropsType } from 'astro'
-import Comments from '~/components/Comments.astro'
-import Pagination from '~/components/Pagination.astro'
-import SiteSeo from '~/components/SiteSeo.astro'
-import LayoutDefault from '~/layouts/LayoutDefault.astro'
-import LayoutPost from '~/layouts/LayoutPost.astro'
+// src/pages/timeline.astro
 import { getPosts } from '~/utils'
+import LayoutDefault from '~/layouts/LayoutDefault.astro'
+import SiteSeo from '~/components/SiteSeo.astro'
 
-export const getStaticPaths = (async () => {
-  try {
-    const posts = await getPosts()
-    // 确保有 timeline 标记的文章
-    const timelinePosts = posts.filter(post => {
-      return post?.data?.timeline === true &&
-             post?.data?.pubDate instanceof Date &&
-             post?.data?.title
-    })
-    
-    if (!timelinePosts.length) {
-      // 如果没有符合条件的文章，返回空数组
-      return []
-    }
+// 获取所有文章并筛选出标记为 timeline 的文章
+const allPosts = await getPosts()
+const timelinePosts = allPosts
+  .filter(post => post.data.timeline) // 假设文章 frontmatter 包含 timeline: true
+  .sort((a, b) => new Date(b.data.date) - new Date(a.data.date))
 
-    // 按发布日期排序
-    timelinePosts.sort((a, b) => {
-      return b.data.pubDate.getTime() - a.data.pubDate.getTime()
-    })
-    
-    return timelinePosts.map((post, idx) => {
-      const prev = timelinePosts[idx - 1]
-      const next = timelinePosts[idx + 1]
-      return {
-        params: { slug: post.slug },
-        props: { entry: post, next, prev },
-      }
-    })
-  } catch (error) {
-    console.error('Error in getStaticPaths:', error)
-    return []
-  }
-}) satisfies GetStaticPaths
-
-type Props = InferGetStaticPropsType<typeof getStaticPaths>
-
-const { entry, prev, next } = Astro.props
-
-// 确保 entry 存在且可以渲染
-if (!entry) {
-  return new Response('Not Found', { status: 404 })
-}
-
-const { Content } = await entry.render()
+// 国际化翻译函数
 const { translate: t } = Astro.locals
-
-function getUrl(slug: string | undefined) {
-  if (!slug) return '#'
-  return `/timeline/${slug}`
-}
-
-function formatDate(date: Date) {
-  try {
-    return date.toLocaleDateString('zh-CN', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric'
-    })
-  } catch (error) {
-    return ''
-  }
-}
-
-// 安全地获取日期
-const pubDate = entry.data.pubDate instanceof Date 
-  ? entry.data.pubDate 
-  : new Date(entry.data.pubDate)
 ---
 
 <LayoutDefault>
   <SiteSeo 
     slot="seo" 
-    title={`${entry.data.title || 'Timeline'}`}
-    desc={entry.data.description || ''}
-    banner={entry.data.banner}
+    title={t('timeline_title')} 
+    desc={t('timeline_description')} 
   />
 
-  <div class="timeline-container">
-    <div class="timeline-header">
-      <h1>{entry.data.title}</h1>
-      {pubDate && (
-        <time datetime={pubDate.toISOString()}>
-          {formatDate(pubDate)}
-        </time>
-      )}
+  <main class="timeline-container">
+    <h1 class="timeline-title">{t('timeline_heading')}</h1>
+    
+    <div class="timeline">
+      {timelinePosts.map((post, index) => (
+        <article class={`timeline-item ${index % 2 === 0 ? 'left' : 'right'}`}>
+          <div class="timeline-marker"></div>
+          
+          <div class="timeline-content">
+            <time class="timeline-date">{post.data.date}</time>
+            <h2 class="timeline-post-title">
+              <a href={`/posts/${post.slug}`}>{post.data.title}</a>
+            </h2>
+            {post.data.description && (
+              <p class="timeline-excerpt">{post.data.description}</p>
+            )}
+            {post.data.icon && (
+              <div class="timeline-icon">
+                <span class={`i-mdi-${post.data.icon}`}></span>
+              </div>
+            )}
+          </div>
+        </article>
+      ))}
     </div>
-
-    <LayoutPost post={entry}>
-      <Content />
-    </LayoutPost>
-
-    {(prev || next) && (
-      <Pagination
-        showLeft={Boolean(prev)}
-        leftTitle={prev ? `${t('prev_post')}: ${prev.data.title}` : ''}
-        leftUrl={getUrl(prev?.slug)}
-        showRight={Boolean(next)}
-        rightTitle={next ? `${t('next_post')}: ${next.data.title}` : ''}
-        rightUrl={getUrl(next?.slug)}
-        showPageCount={false}
-      />
-    )}
-  </div>
-
-  <Comments post={entry} />
+  </main>
 </LayoutDefault>
 
-<script>
-  import '@github/clipboard-copy-element'
-
-  document.addEventListener('clipboard-copy', (event) => {
-    const target = event.target as HTMLElement
-    const icon = target.querySelector('.icon') as HTMLElement
-    if (icon) {
-      icon.classList.replace('i-mdi-content-copy', 'i-mdi-check')
-      setTimeout(() => {
-        icon.classList.replace('i-mdi-check', 'i-mdi-content-copy')
-      }, 1500)
-    }
-  })
-
-  const codeBlocks = Array.from(document.querySelectorAll('pre'))
-  const icon = "<div class='i-mdi-content-copy icon text-white'></div>"
-  
-  for (const codeBlock of codeBlocks) {
-    try {
-      const wrapper = document.createElement('div')
-      wrapper.className = 'code-container'
-
-      const copyButton = document.createElement('clipboard-copy')
-      const code = codeBlock.querySelector('code')
-      copyButton.value = code?.textContent ?? ''
-      copyButton.className = 'clipboard-copy'
-      copyButton.innerHTML = icon
-
-      codeBlock.appendChild(copyButton)
-
-      if (codeBlock.parentNode) {
-        codeBlock.parentNode.insertBefore(wrapper, codeBlock)
-        wrapper.appendChild(codeBlock)
-      }
-    } catch (error) {
-      console.error('Error processing code block:', error)
-    }
-  }
-</script>
-
-<style is:global>
+<style>
   .timeline-container {
     max-width: 800px;
     margin: 0 auto;
     padding: 2rem 1rem;
   }
 
-  .timeline-header {
-    margin-bottom: 2rem;
+  .timeline-title {
     text-align: center;
+    margin-bottom: 3rem;
+    font-size: 2.5rem;
   }
 
-  .timeline-header h1 {
-    font-size: 2rem;
-    font-weight: bold;
+  .timeline {
+    position: relative;
+    padding: 2rem 0;
+  }
+
+  .timeline::before {
+    content: '';
+    position: absolute;
+    left: 50%;
+    width: 2px;
+    height: 100%;
+    background: var(--color-border);
+  }
+
+  .timeline-item {
+    display: flex;
+    margin-bottom: 2rem;
+    position: relative;
+    width: 100%;
+  }
+
+  .timeline-marker {
+    width: 20px;
+    height: 20px;
+    background: var(--color-primary);
+    border-radius: 50%;
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 1;
+  }
+
+  .timeline-content {
+    width: calc(50% - 40px);
+    padding: 1.5rem;
+    background: var(--color-bg-secondary);
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  }
+
+  .timeline-item.left .timeline-content {
+    margin-right: 40px;
+  }
+
+  .timeline-item.right .timeline-content {
+    margin-left: 40px;
+  }
+
+  .timeline-date {
+    display: block;
+    color: var(--color-text-secondary);
+    font-size: 0.9rem;
     margin-bottom: 0.5rem;
   }
 
-  .timeline-header time {
-    color: #666;
-    font-size: 0.9rem;
+  .timeline-post-title {
+    margin: 0 0 1rem;
+    font-size: 1.25rem;
   }
 
-  .code-container {
-    position: relative;
-  }
-  
-  .clipboard-copy {
-    position: absolute;
-    top: 0.5rem;
-    right: 0.5rem;
-    width: 1.75rem;
-    height: 1.75rem;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    border-radius: 0.25rem;
+  .timeline-excerpt {
+    color: var(--color-text-secondary);
+    line-height: 1.6;
   }
 
-  .clipboard-copy:hover {
-    background-color: #30363d;
+  .timeline-icon {
+    margin-top: 1rem;
+    font-size: 1.5rem;
+    color: var(--color-primary);
+  }
+
+  @media (max-width: 768px) {
+    .timeline::before {
+      left: 20px;
+    }
+
+    .timeline-item {
+      flex-direction: column;
+      align-items: flex-start;
+    }
+
+    .timeline-content {
+      width: calc(100% - 60px);
+      margin-left: 60px !important;
+    }
+
+    .timeline-marker {
+      left: 20px;
+    }
   }
 </style>
