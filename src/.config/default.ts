@@ -43,6 +43,10 @@ export const defaultConfig: ThemeConfig = {
         href: '/categories',
       },
       {
+        name: 'Timeline',
+        href: '/timeline',
+      },
+      {
         name: 'About',
         href: '/about',
       },
