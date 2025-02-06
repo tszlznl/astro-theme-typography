@@ -9,9 +9,10 @@ const timelinePosts = allPosts.filter(post => post.data.timeline === true);
 
 import LayoutDefault from '~/layouts/LayoutDefault.astro'
 
+import LayoutPost from '~/layouts/LayoutPost.astro'
+
 ---
 <LayoutDefault>
-
     <div class="timeline">
       <h1>动态页面</h1>
       <ul style="list-style: none; padding: 0;">
