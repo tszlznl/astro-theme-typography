@@ -8,76 +8,107 @@ import LayoutPost from '~/layouts/LayoutPost.astro'
 import { getPosts } from '~/utils'
 
 export const getStaticPaths = (async () => {
-  // 获取所有带有 timeline: true 标记的文章
-  const posts = await getPosts()
-  const timelinePosts = posts.filter(post => post.data.timeline === true)
-  
-  // 按发布日期排序
-  timelinePosts.sort((a, b) => {
-    const dateA = new Date(a.data.pubDate)
-    const dateB = new Date(b.data.pubDate)
-    return dateB.getTime() - dateA.getTime()
-  })
-  
-  return timelinePosts.map((post, idx) => {
-    const prev = timelinePosts[idx - 1]
-    const next = timelinePosts[idx + 1]
-    return {
-      params: { slug: post.slug },
-      props: { entry: post, next, prev },
+  try {
+    const posts = await getPosts()
+    // 确保有 timeline 标记的文章
+    const timelinePosts = posts.filter(post => {
+      return post?.data?.timeline === true &&
+             post?.data?.pubDate instanceof Date &&
+             post?.data?.title
+    })
+    
+    if (!timelinePosts.length) {
+      // 如果没有符合条件的文章，返回空数组
+      return []
     }
-  })
+
+    // 按发布日期排序
+    timelinePosts.sort((a, b) => {
+      return b.data.pubDate.getTime() - a.data.pubDate.getTime()
+    })
+    
+    return timelinePosts.map((post, idx) => {
+      const prev = timelinePosts[idx - 1]
+      const next = timelinePosts[idx + 1]
+      return {
+        params: { slug: post.slug },
+        props: { entry: post, next, prev },
+      }
+    })
+  } catch (error) {
+    console.error('Error in getStaticPaths:', error)
+    return []
+  }
 }) satisfies GetStaticPaths
 
 type Props = InferGetStaticPropsType<typeof getStaticPaths>
 
 const { entry, prev, next } = Astro.props
+
+// 确保 entry 存在且可以渲染
+if (!entry) {
+  return new Response('Not Found', { status: 404 })
+}
+
 const { Content } = await entry.render()
 const { translate: t } = Astro.locals
 
-function getUrl(slug: string) {
+function getUrl(slug: string | undefined) {
+  if (!slug) return '#'
   return `/timeline/${slug}`
 }
 
-// 格式化日期
 function formatDate(date: Date) {
-  return date.toLocaleDateString('zh-CN', {
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric'
-  })
+  try {
+    return date.toLocaleDateString('zh-CN', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric'
+    })
+  } catch (error) {
+    return ''
+  }
 }
+
+// 安全地获取日期
+const pubDate = entry.data.pubDate instanceof Date 
+  ? entry.data.pubDate 
+  : new Date(entry.data.pubDate)
 ---
 
 <LayoutDefault>
   <SiteSeo 
     slot="seo" 
-    title={`${entry.data.title} | Timeline`} 
-    desc={entry.data.description} 
-    banner={entry.data.banner} 
+    title={`${entry.data.title || 'Timeline'}`}
+    desc={entry.data.description || ''}
+    banner={entry.data.banner}
   />
 
   <div class="timeline-container">
     <div class="timeline-header">
       <h1>{entry.data.title}</h1>
-      <time datetime={entry.data.pubDate.toISOString()}>
-        {formatDate(entry.data.pubDate)}
-      </time>
+      {pubDate && (
+        <time datetime={pubDate.toISOString()}>
+          {formatDate(pubDate)}
+        </time>
+      )}
     </div>
 
     <LayoutPost post={entry}>
       <Content />
     </LayoutPost>
 
-    <Pagination
-      showLeft={Boolean(prev)}
-      leftTitle={`${t('prev_post')}: ${prev?.data.title}`}
-      leftUrl={getUrl(prev?.slug)}
-      showRight={Boolean(next)}
-      rightTitle={`${t('next_post')}: ${next?.data.title}`}
-      rightUrl={getUrl(next?.slug)}
-      showPageCount={false}
-    />
+    {(prev || next) && (
+      <Pagination
+        showLeft={Boolean(prev)}
+        leftTitle={prev ? `${t('prev_post')}: ${prev.data.title}` : ''}
+        leftUrl={getUrl(prev?.slug)}
+        showRight={Boolean(next)}
+        rightTitle={next ? `${t('next_post')}: ${next.data.title}` : ''}
+        rightUrl={getUrl(next?.slug)}
+        showPageCount={false}
+      />
+    )}
   </div>
 
   <Comments post={entry} />
@@ -89,28 +120,37 @@ function formatDate(date: Date) {
   document.addEventListener('clipboard-copy', (event) => {
     const target = event.target as HTMLElement
     const icon = target.querySelector('.icon') as HTMLElement
-    icon.classList.replace('i-mdi-content-copy', 'i-mdi-check')
-    setTimeout(() => {
-      icon.classList.replace('i-mdi-check', 'i-mdi-content-copy')
-    }, 1500)
+    if (icon) {
+      icon.classList.replace('i-mdi-content-copy', 'i-mdi-check')
+      setTimeout(() => {
+        icon.classList.replace('i-mdi-check', 'i-mdi-content-copy')
+      }, 1500)
+    }
   })
 
   const codeBlocks = Array.from(document.querySelectorAll('pre'))
   const icon = "<div class='i-mdi-content-copy icon text-white'></div>"
+  
   for (const codeBlock of codeBlocks) {
-    const wrapper = document.createElement('div')
-    wrapper.className = 'code-container'
+    try {
+      const wrapper = document.createElement('div')
+      wrapper.className = 'code-container'
 
-    const copyButton = document.createElement('clipboard-copy')
-    const code = codeBlock.querySelector('code')
-    copyButton.value = code?.textContent ?? ''
-    copyButton.className = 'clipboard-copy'
-    copyButton.innerHTML = icon
+      const copyButton = document.createElement('clipboard-copy')
+      const code = codeBlock.querySelector('code')
+      copyButton.value = code?.textContent ?? ''
+      copyButton.className = 'clipboard-copy'
+      copyButton.innerHTML = icon
 
-    codeBlock.appendChild(copyButton)
+      codeBlock.appendChild(copyButton)
 
-    codeBlock.parentNode?.insertBefore(wrapper, codeBlock)
-    wrapper.appendChild(codeBlock)
+      if (codeBlock.parentNode) {
+        codeBlock.parentNode.insertBefore(wrapper, codeBlock)
+        wrapper.appendChild(codeBlock)
+      }
+    } catch (error) {
+      console.error('Error processing code block:', error)
+    }
   }
 </script>
 
