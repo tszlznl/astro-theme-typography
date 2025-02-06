@@ -44,7 +44,7 @@ export const defaultConfig: ThemeConfig = {
       },
       {
         name: 'Timeline',
-        href: '/timeline',
+        href: '/Timeline2025',
       },
       {
         name: 'About',

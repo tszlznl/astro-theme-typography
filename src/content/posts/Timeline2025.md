@@ -1,9 +1,7 @@
 ---
 title: 2025年动态
-layout: '../layouts/LayoutDefault.astro'
-timeline: true
-pubDate: 1921-01-10
-categories: ['魯迅']
+pubDate: 2025-01-1
+categories: ['罗妄']
 description: ''
 ---
 ## 2025
