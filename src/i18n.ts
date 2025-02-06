@@ -7,6 +7,7 @@ export const LANGUAGES = {
     Tags: '标签',
     About: '关于',
     Links: '链接',
+    Timeline: '动态',
 
     posted_at: '发布于',
     tag_count: '%d 篇',
@@ -30,6 +31,7 @@ export const LANGUAGES = {
     Tags: 'Tags',
     About: 'About',
     Links: 'Links',
+    Timeline: 'Timeline',
 
     posted_at: 'Posted at',
     tag_count: '%d tags',

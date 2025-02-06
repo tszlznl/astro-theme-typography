@@ -6,6 +6,7 @@ const posts = defineCollection({
     z.object({
       title: z.string(),
       description: z.string().optional(),
+      timeline: z.boolean().optional(),
       pubDate: z.coerce.date(),
       customData: z.string().optional(),
       banner: image()
