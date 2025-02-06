@@ -1,5 +1,5 @@
 ---
-title: 2025年动态
+title: 2025年动态墙
 pubDate: 2025-01-1
 categories: ['罗妄']
 description: ''
