@@ -34,12 +34,6 @@ const { Content } = await post.render()
 ---
 
 <LayoutDefault>
-  <SiteSeo
-    slot="seo"
-    title={post.frontmatter.title}
-    desc={post.frontmatter.description}
-    banner={post.frontmatter.banner}
-  />
 
   <LayoutTimeline post={post}>
     <!-- 渲染 Markdown 内容 -->
