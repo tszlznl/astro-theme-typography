@@ -1,0 +1,52 @@
+---
+// pages/timeline/[slug].astro
+
+import type { GetStaticPaths, InferGetStaticPropsType } from 'astro'
+import LayoutDefault from '~/layouts/LayoutDefault.astro'
+import LayoutTimeline from '~/layouts/LayoutTimeline.astro'
+import SiteSeo from '~/components/SiteSeo.astro'
+
+// 使用 import.meta.glob 读取 timeline 目录下所有 Markdown 文件
+const allTimelinePosts = import.meta.glob('../../content/timeline/*.md', { eager: true })
+
+// 过滤出 frontmatter 中 timeline 为 true 的文章
+const timelinePosts = Object.values(allTimelinePosts).filter(
+  (post: any) => post.frontmatter.timeline === true
+)
+
+export const getStaticPaths: GetStaticPaths = () => {
+  return timelinePosts.map((post: any) => {
+    // 使用 frontmatter 中的 slug，如果不存在则根据文件 URL 生成
+    const slug = post.frontmatter.slug || post.url.split('/').pop()
+    return {
+      params: { slug },
+      props: { post },
+    }
+  })
+}
+
+type Props = InferGetStaticPropsType<typeof getStaticPaths>
+
+const { post } = Astro.props as Props
+
+// 渲染 Markdown 内容
+const { Content } = await post.render()
+---
+
+<LayoutDefault>
+  <SiteSeo
+    slot="seo"
+    title={post.frontmatter.title}
+    desc={post.frontmatter.description}
+    banner={post.frontmatter.banner}
+  />
+
+  <LayoutTimeline post={post}>
+    <!-- 渲染 Markdown 内容 -->
+    <Content />
+  </LayoutTimeline>
+</LayoutDefault>
+
+<style is:global>
+  /* 如果需要，可以在这里添加全局样式 */
+</style>
