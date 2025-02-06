@@ -11,43 +11,7 @@ import LayoutDefault from '~/layouts/LayoutDefault.astro'
 
 ---
 <LayoutDefault>
-<style>
-      .timeline {
-        max-width: 800px;
-        margin: 0 auto;
-        padding: 20px;
-      }
-      
-      .timeline-item {
-        position: relative;
-        margin: 2em 0;
-        padding-left: 30px;
-        border-left: 2px solid #ccc;
-      }
 
-      .timeline-item:before {
-        content: '';
-        position: absolute;
-        left: -10px;
-        top: 0;
-        width: 20px;
-        height: 20px;
-        border-radius: 50%;
-        background: #fff;
-        border: 2px solid #ccc;
-      }
-
-      .timeline-title {
-        margin: 0 0 0.5em;
-        color: #333;
-        font-size: 1.25em;
-      }
-
-      .timeline-content {
-        line-height: 1.6;
-        color: #666;
-      }
-    </style>
     <div class="timeline">
       <h1>动态页面</h1>
       <ul style="list-style: none; padding: 0;">
