@@ -18,7 +18,6 @@ const dongtaiPosts = allPosts.filter(post => post.data.timeline === true);
       {dongtaiPosts.map(post => (
         <li>
           <h2>{post.data.title}</h2>
-          <p>{post.data.date}</p>
           <article>{post.body}</article>
         </li>
       ))}
