@@ -1,0 +1,31 @@
+---
+import LayoutDefault from '~/layouts/LayoutDefault.astro'
+
+---
+
+<LayoutDefault>
+  <div flex="~ col gap-4">
+    {
+      [
+        [2025, [
+          { title: "Blog Post 1", href: "/timeline/20251", date: "2025-01-01" },
+          { title: "Blog Post 2", href: "/timeline/20242", date: "2025-02-01" }
+        ]]
+      ].map(([year, posts]) => (
+        <section>
+          <h2 class="post-title">{year}</h2>
+          <ul class="pl-6" flex="~ col gap-4">
+            {posts.map(({ title, href, date }) => (
+              <li>
+                <h3 class="post-title">
+                  <a href={href}>{title}</a>
+                </h3>
+                <time>{date}</time>
+              </li>
+            ))}
+          </ul>
+        </section>
+      ))
+    }
+  </div>
+</LayoutDefault>
